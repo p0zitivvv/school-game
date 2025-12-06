@@ -454,15 +454,8 @@ function drawGame() {
     gameCtx.fillStyle = '#2a3a4e';
     gameCtx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
     
-    // Рисуем пол (плитка)
-    gameCtx.fillStyle = '#3a4a5e';
-    for (let x = 0; x < gameCanvas.width; x += 40) {
-        for (let y = 0; y < gameCanvas.height; y += 40) {
-            if ((x / 40 + y / 40) % 2 === 0) {
-                gameCtx.fillRect(x, y, 40, 40);
-            }
-        }
-    }
+    // Рисуем древесный пол
+    drawWoodenFloor();
     
     // Рисуем стены
     gameCtx.fillStyle = '#4a5a6e';
@@ -471,8 +464,8 @@ function drawGame() {
     gameCtx.fillRect(gameCanvas.width - 20, 0, 20, gameCanvas.height);
     gameCtx.fillRect(0, gameCanvas.height - 20, gameCanvas.width, 20);
     
-    // Рисуем школу (цель)
-    drawSchool(gameState.mission.targetX, gameState.mission.targetY);
+    // Рисуем дверь кабинета (цель)
+    drawDoor(gameState.mission.targetX, gameState.mission.targetY);
     
     // Рисуем других учеников
     gameState.otherStudents.forEach(student => {
@@ -486,34 +479,96 @@ function drawGame() {
     drawTargetIndicator();
 }
 
-function drawSchool(x, y) {
-    // Основание школы
-    gameCtx.fillStyle = '#8B7355';
-    gameCtx.fillRect(x - 40, y, 80, 60);
+// Рисуем древесный пол
+function drawWoodenFloor() {
+    const boardWidth = 80;
+    const boardHeight = 20;
     
-    // Крыша
+    // Цвета дерева
+    const woodColors = [
+        '#8B6F47', // Светлое дерево
+        '#7A5F3D', // Среднее дерево
+        '#6B4F33'  // Тёмное дерево
+    ];
+    
+    // Рисуем доски пола
+    for (let y = 20; y < gameCanvas.height - 20; y += boardHeight) {
+        for (let x = 20; x < gameCanvas.width - 20; x += boardWidth) {
+            // Выбираем случайный оттенок дерева для каждой доски
+            const colorIndex = Math.floor((x + y) / boardWidth) % woodColors.length;
+            gameCtx.fillStyle = woodColors[colorIndex];
+            
+            // Рисуем доску
+            gameCtx.fillRect(x, y, boardWidth, boardHeight);
+            
+            // Рисуем текстуру дерева (вертикальные линии)
+            gameCtx.strokeStyle = '#5A3F27';
+            gameCtx.lineWidth = 1;
+            for (let i = 0; i < boardWidth; i += 8) {
+                gameCtx.beginPath();
+                gameCtx.moveTo(x + i, y);
+                gameCtx.lineTo(x + i, y + boardHeight);
+                gameCtx.stroke();
+            }
+            
+            // Рисуем сучки/узлы
+            if (Math.random() > 0.7) {
+                gameCtx.fillStyle = '#4A2F1F';
+                gameCtx.beginPath();
+                gameCtx.arc(x + Math.random() * boardWidth, y + Math.random() * boardHeight, 2, 0, Math.PI * 2);
+                gameCtx.fill();
+            }
+        }
+    }
+}
+
+// Рисуем дверь кабинета
+function drawDoor(x, y) {
+    const doorWidth = 60;
+    const doorHeight = 100;
+    
+    // Дверная коробка
     gameCtx.fillStyle = '#654321';
+    gameCtx.fillRect(x - doorWidth/2 - 5, y - doorHeight, doorWidth + 10, doorHeight + 10);
+    
+    // Сама дверь
+    gameCtx.fillStyle = '#8B6F47';
+    gameCtx.fillRect(x - doorWidth/2, y - doorHeight + 5, doorWidth, doorHeight);
+    
+    // Текстура дерева на двери (вертикальные линии)
+    gameCtx.strokeStyle = '#6B4F33';
+    gameCtx.lineWidth = 2;
+    for (let i = 0; i < doorWidth; i += 10) {
+        gameCtx.beginPath();
+        gameCtx.moveTo(x - doorWidth/2 + i, y - doorHeight + 5);
+        gameCtx.lineTo(x - doorWidth/2 + i, y - 5);
+        gameCtx.stroke();
+    }
+    
+    // Дверная ручка
+    gameCtx.fillStyle = '#C0C0C0';
     gameCtx.beginPath();
-    gameCtx.moveTo(x - 50, y);
-    gameCtx.lineTo(x, y - 30);
-    gameCtx.lineTo(x + 50, y);
-    gameCtx.closePath();
+    gameCtx.arc(x + doorWidth/2 - 15, y - doorHeight/2, 5, 0, Math.PI * 2);
     gameCtx.fill();
     
-    // Дверь
-    gameCtx.fillStyle = '#4a2c1a';
-    gameCtx.fillRect(x - 10, y + 20, 20, 40);
+    // Номер кабинета (табличка)
+    gameCtx.fillStyle = '#2a2a3e';
+    gameCtx.fillRect(x - 20, y - doorHeight - 25, 40, 20);
+    gameCtx.strokeStyle = '#4a90e2';
+    gameCtx.lineWidth = 2;
+    gameCtx.strokeRect(x - 20, y - doorHeight - 25, 40, 20);
     
-    // Окна
-    gameCtx.fillStyle = '#87CEEB';
-    gameCtx.fillRect(x - 30, y + 10, 15, 15);
-    gameCtx.fillRect(x + 15, y + 10, 15, 15);
+    // Номер на табличке
+    gameCtx.fillStyle = '#FFFFFF';
+    gameCtx.font = 'bold 14px Courier New';
+    gameCtx.textAlign = 'center';
+    gameCtx.fillText('101', x, y - doorHeight - 12);
     
-    // Надпись "КЛАСС"
+    // Надпись "КЛАСС" под дверью
     gameCtx.fillStyle = '#FFFFFF';
     gameCtx.font = 'bold 16px Courier New';
     gameCtx.textAlign = 'center';
-    gameCtx.fillText('КЛАСС', x, y + 80);
+    gameCtx.fillText('КЛАСС', x, y + 20);
 }
 
 function drawPlayer(x, y) {
