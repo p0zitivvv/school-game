@@ -88,12 +88,73 @@
                     <p>Управление: WASD или Стрелки</p>
                 </div>
             </div>
+            <!-- Плашка помощника -->
+            <div id="helper-panel" class="helper-panel">
+                <div class="helper-header">
+                    <span class="helper-icon">💡</span>
+                    <span class="helper-name">Помощник</span>
+                </div>
+                <div id="helper-text" class="helper-text">Доберись до класса вовремя!</div>
+            </div>
             <canvas id="game-canvas"></canvas>
+            <!-- Диалог выбора после опоздания -->
+            <div id="late-choice-dialog" class="dialog-popup hidden">
+                <div class="dialog-content">
+                    <h2>Ты опоздал!</h2>
+                    <p>Что будешь делать?</p>
+                    <div class="dialog-buttons">
+                        <button id="apologize-btn" class="pixel-btn">Извиниться</button>
+                        <button id="skip-class-btn" class="pixel-btn">Не заходить в кабинет</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Результат миссии -->
             <div id="mission-result" class="mission-popup hidden">
                 <div class="popup-content">
                     <h2 id="result-title"></h2>
                     <p id="result-message"></p>
                     <button id="continue-btn" class="pixel-btn">Продолжить</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Сцена с директором -->
+        <div id="director-screen" class="screen">
+            <div class="director-content">
+                <div class="director-scene">
+                    <div class="character-display">
+                        <div class="director-sprite">👔</div>
+                        <div class="player-sprite-preview"></div>
+                    </div>
+                    <div class="dialogue-box">
+                        <div id="director-dialogue" class="dialogue-text">
+                            <p class="speaker">Директор:</p>
+                            <p class="text">Так, объясни ситуацию.</p>
+                        </div>
+                        <button id="next-director-btn" class="pixel-btn">Далее</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Сцена урока -->
+        <div id="lesson-screen" class="screen">
+            <div class="lesson-content">
+                <div class="lesson-header">
+                    <h2 class="pixel-text">Урок истории</h2>
+                    <div class="confidence-meter">
+                        <span>Уверенность: </span>
+                        <div class="meter-bar">
+                            <div id="confidence-fill" class="meter-fill"></div>
+                        </div>
+                        <span id="confidence-value">50</span>
+                    </div>
+                </div>
+                <div class="question-container">
+                    <div id="question-number" class="question-number">Вопрос 1 из 5</div>
+                    <div id="question-text" class="question-text"></div>
+                    <div id="answer-options" class="answer-options"></div>
+                    <div id="answer-feedback" class="answer-feedback hidden"></div>
                 </div>
             </div>
         </div>
