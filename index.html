@@ -3,200 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Школьный Симулятор: Проживи 1 День</title>
+    <title>Школьный Симулятор</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="game-container">
-        <!-- Экран создания персонажа -->
-        <div id="character-creation" class="screen active">
-            <div class="screen-content">
-                <h1>🎓 Школьный Симулятор</h1>
-                <h2>Проживи 1 День</h2>
-                
-                <div class="character-form">
-                    <div class="form-group">
-                        <label for="player-name">Твоё имя:</label>
-                        <input type="text" id="player-name" placeholder="Введи имя" maxlength="20">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Класс:</label>
-                        <div class="button-group">
-                            <button class="class-btn" data-class="5">5 класс</button>
-                            <button class="class-btn" data-class="8">8 класс</button>
-                            <button class="class-btn" data-class="11">11 класс</button>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Характер:</label>
-                        <div class="character-options">
-                            <button class="character-btn" data-character="хулиган">
-                                <span class="emoji">😈</span>
-                                <span>Хулиган</span>
-                            </button>
-                            <button class="character-btn" data-character="отличник">
-                                <span class="emoji">📚</span>
-                                <span>Отличник</span>
-                            </button>
-                            <button class="character-btn" data-character="тихоня">
-                                <span class="emoji">😊</span>
-                                <span>Тихоня</span>
-                            </button>
-                            <button class="character-btn" data-character="гений">
-                                <span class="emoji">🧠</span>
-                                <span>Гений</span>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <button id="start-game-btn" class="primary-btn" disabled>Начать день!</button>
+        <!-- Главное меню -->
+        <div id="main-menu" class="screen active">
+            <div class="menu-content">
+                <h1 id="main-title" class="pixel-text">Школьный Симулятор</h1>
+                <div class="menu-buttons">
+                    <button id="customize-btn" class="menu-btn pixel-btn">Внешний облик</button>
+                    <button id="start-game-btn" class="menu-btn pixel-btn">Начать игру</button>
+                    <button id="support-btn" class="menu-btn pixel-btn">Поддержка</button>
                 </div>
             </div>
         </div>
 
-        <!-- Экран игры -->
-        <div id="game-screen" class="screen">
-            <div class="stats-bar">
-                <div class="stat">
-                    <span class="stat-label">Настроение:</span>
-                    <div class="stat-bar">
-                        <div id="mood-bar" class="stat-fill"></div>
+        <!-- Экран кастомизации -->
+        <div id="customize-screen" class="screen">
+            <div class="customize-content">
+                <h2 class="pixel-text">Кастомизация персонажа</h2>
+                <div class="customize-wrapper">
+                    <div class="character-preview">
+                        <canvas id="character-canvas" width="128" height="128"></canvas>
                     </div>
-                    <span id="mood-value">50</span>
-                </div>
-                <div class="stat">
-                    <span class="stat-label">Репутация:</span>
-                    <div class="stat-bar">
-                        <div id="reputation-bar" class="stat-fill"></div>
-                    </div>
-                    <span id="reputation-value">50</span>
-                </div>
-                <div class="stat">
-                    <span class="stat-label">Оценки:</span>
-                    <div class="stat-bar">
-                        <div id="grades-bar" class="stat-fill"></div>
-                    </div>
-                    <span id="grades-value">50</span>
-                </div>
-            </div>
-
-            <div class="game-content">
-                <!-- Сцена 1: Успей на урок -->
-                <div id="scene-running" class="scene">
-                    <h2>🏃 Успей на урок!</h2>
-                    <p>Звонок уже прозвенел! Нужно добежать до класса!</p>
-                    <div id="running-game">
-                        <div id="corridor">
-                            <div id="player-runner">🏃</div>
-                            <div class="obstacle" id="obstacle1">📚</div>
-                            <div class="obstacle" id="obstacle2">🪑</div>
-                            <div class="obstacle" id="obstacle3">📦</div>
-                        </div>
-                        <div class="game-instructions">
-                            <p>Кликай быстро, чтобы перепрыгивать препятствия!</p>
-                            <button id="jump-btn" class="jump-button">ПРЫГАТЬ!</button>
-                        </div>
-                        <div id="running-timer">Время: <span id="time-left">20</span>с</div>
-                    </div>
-                </div>
-
-                <!-- Сцена 2: Контрольная -->
-                <div id="scene-test" class="scene hidden">
-                    <h2>📝 Контрольная неожиданно!</h2>
-                    <p>Учитель объявил контрольную! Что будешь делать?</p>
-                    <div class="choice-buttons">
-                        <button class="choice-btn" data-choice="cheat">📋 Списать у соседа</button>
-                        <button class="choice-btn" data-choice="honest">✍️ Ответить честно</button>
-                        <button class="choice-btn" data-choice="distract">🎭 Отвлечь учителя</button>
-                    </div>
-                    <div id="test-result" class="result-text hidden"></div>
-                </div>
-
-                <!-- Сцена 3: Столовая -->
-                <div id="scene-canteen" class="scene hidden">
-                    <h2>🍽️ Столовая</h2>
-                    <p>Тётя Галя ругается! Собери поднос быстрее!</p>
-                    <div id="canteen-game">
-                        <div class="canteen-items">
-                            <div class="food-item" data-food="soup">🍲 Суп</div>
-                            <div class="food-item" data-food="main">🍖 Котлета</div>
-                            <div class="food-item" data-food="salad">🥗 Салат</div>
-                            <div class="food-item" data-food="bread">🍞 Хлеб</div>
-                            <div class="food-item" data-food="compote">🥤 Компот</div>
-                        </div>
-                        <div class="tray-area">
-                            <h3>Твой поднос:</h3>
-                            <div id="tray" class="tray"></div>
-                        </div>
-                        <div id="canteen-timer">Время: <span id="canteen-time">15</span>с</div>
-                        <div id="aunt-gala" class="aunt-gala">👵 Тётя Галя: <span id="aunt-text">Быстрее!</span></div>
-                    </div>
-                </div>
-
-                <!-- Сцена 4: Перемена -->
-                <div id="scene-break" class="scene hidden">
-                    <h2>⏰ Перемена</h2>
-                    <p>15 минут свободы! Чем займёшься?</p>
-                    <div class="choice-buttons">
-                        <button class="choice-btn" data-choice="chat">💬 Поболтать с друзьями</button>
-                        <button class="choice-btn" data-choice="play">⚽ Поиграть в мяч</button>
-                        <button class="choice-btn" data-choice="sleep">😴 Поспать</button>
-                        <button class="choice-btn" data-choice="argue">🤬 Поспорить с одноклассником</button>
-                    </div>
-                    <div id="break-result" class="result-text hidden"></div>
-                </div>
-
-                <!-- Сцена 5: Лабораторная -->
-                <div id="scene-lab" class="scene hidden">
-                    <h2>🧪 Лабораторная работа</h2>
-                    <p>Смешай реагенты в правильном порядке! Иначе... 💥</p>
-                    <div id="lab-game">
-                        <div class="reagents">
-                            <div class="reagent" data-reagent="1">🧪 Реагент A</div>
-                            <div class="reagent" data-reagent="2">🧪 Реагент B</div>
-                            <div class="reagent" data-reagent="3">🧪 Реагент C</div>
-                            <div class="reagent" data-reagent="4">🧪 Реагент D</div>
-                        </div>
-                        <div class="lab-instructions">
-                            <h3>Правильный порядок: A → B → C → D</h3>
-                            <div id="lab-sequence" class="sequence">
-                                <p>Твоя последовательность:</p>
-                                <div id="selected-reagents"></div>
+                    <div class="customize-options">
+                        <div class="option-group">
+                            <h3>Волосы</h3>
+                            <div class="option-buttons">
+                                <button class="option-btn" data-type="hair" data-value="0">Короткие</button>
+                                <button class="option-btn" data-type="hair" data-value="1">Длинные</button>
+                                <button class="option-btn" data-type="hair" data-value="2">Кудрявые</button>
+                                <button class="option-btn" data-type="hair" data-value="3">Ирокез</button>
                             </div>
-                            <button id="mix-btn" class="primary-btn">Смешать!</button>
-                            <button id="reset-lab-btn" class="secondary-btn">Начать заново</button>
+                        </div>
+                        <div class="option-group">
+                            <h3>Футболка/Кофта</h3>
+                            <div class="option-buttons">
+                                <button class="option-btn" data-type="shirt" data-value="0">Синяя</button>
+                                <button class="option-btn" data-type="shirt" data-value="1">Красная</button>
+                                <button class="option-btn" data-type="shirt" data-value="2">Зелёная</button>
+                                <button class="option-btn" data-type="shirt" data-value="3">Жёлтая</button>
+                            </div>
+                        </div>
+                        <div class="option-group">
+                            <h3>Штаны</h3>
+                            <div class="option-buttons">
+                                <button class="option-btn" data-type="pants" data-value="0">Синие</button>
+                                <button class="option-btn" data-type="pants" data-value="1">Чёрные</button>
+                                <button class="option-btn" data-type="pants" data-value="2">Серые</button>
+                                <button class="option-btn" data-type="pants" data-value="3">Коричневые</button>
+                            </div>
                         </div>
                     </div>
-                    <div id="lab-result" class="result-text hidden"></div>
                 </div>
+                <button id="back-to-menu-btn" class="pixel-btn">Назад в меню</button>
             </div>
         </div>
 
-        <!-- Экран финала -->
-        <div id="final-screen" class="screen">
-            <div class="screen-content">
-                <h1 id="final-title">🎉 Финал!</h1>
-                <div id="final-message"></div>
-                <div class="final-stats">
-                    <h3>Твои итоговые показатели:</h3>
-                    <div class="final-stat-item">
-                        <span>Настроение:</span>
-                        <span id="final-mood">50</span>
-                    </div>
-                    <div class="final-stat-item">
-                        <span>Репутация:</span>
-                        <span id="final-reputation">50</span>
-                    </div>
-                    <div class="final-stat-item">
-                        <span>Оценки:</span>
-                        <span id="final-grades">50</span>
-                    </div>
+        <!-- Экран поддержки -->
+        <div id="support-screen" class="screen">
+            <div class="support-content">
+                <h2 class="pixel-text">Поддержка</h2>
+                <div class="support-info">
+                    <p>🎮 Школьный Симулятор - пиксельная игра о школьной жизни</p>
+                    <p>📍 Карта: ул. Школьная, д. 1</p>
+                    <p>📷 Instagram: @school_simulator</p>
+                    <p>📧 Email: support@schoolsim.ru</p>
+                    <p>💬 Telegram: @school_sim</p>
                 </div>
-                <div class="final-buttons">
-                    <button id="restart-btn" class="primary-btn">🔄 Пройти заново</button>
-                    <button id="new-character-btn" class="secondary-btn">👤 Попробовать другой характер</button>
+                <button id="back-from-support-btn" class="pixel-btn">Назад в меню</button>
+            </div>
+        </div>
+
+        <!-- Игровая сцена -->
+        <div id="game-screen" class="screen">
+            <div class="game-ui">
+                <div class="mission-info">
+                    <h3 id="mission-title">Миссия: Успей на урок!</h3>
+                    <div id="timer">Время: <span id="time-left">30</span>с</div>
+                </div>
+                <div class="controls-info">
+                    <p>Управление: WASD или Стрелки</p>
+                </div>
+            </div>
+            <canvas id="game-canvas"></canvas>
+            <div id="mission-result" class="mission-popup hidden">
+                <div class="popup-content">
+                    <h2 id="result-title"></h2>
+                    <p id="result-message"></p>
+                    <button id="continue-btn" class="pixel-btn">Продолжить</button>
                 </div>
             </div>
         </div>
@@ -205,4 +102,3 @@
     <script src="script.js"></script>
 </body>
 </html>
-
