@@ -95,6 +95,10 @@ body {
         0 8px 0 #1a3460;
     position: relative;
     min-width: 250px;
+    z-index: 1000;
+    pointer-events: auto;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .pixel-btn:hover {
@@ -188,6 +192,10 @@ body {
     border: 2px solid #4a90e2;
     cursor: pointer;
     transition: all 0.1s;
+    z-index: 1000;
+    pointer-events: auto;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .option-btn:hover {
