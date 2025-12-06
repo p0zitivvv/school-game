@@ -46,27 +46,53 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Главное меню
 function initMainMenu() {
-    document.getElementById('customize-btn').addEventListener('click', () => {
-        showScreen('customize-screen');
-        drawCharacter();
-    });
+    const customizeBtn = document.getElementById('customize-btn');
+    const startGameBtn = document.getElementById('start-game-btn');
+    const supportBtn = document.getElementById('support-btn');
+    const backToMenuBtn = document.getElementById('back-to-menu-btn');
+    const backFromSupportBtn = document.getElementById('back-from-support-btn');
 
-    document.getElementById('start-game-btn').addEventListener('click', () => {
-        showScreen('game-screen');
-        startGame();
-    });
+    if (customizeBtn) {
+        customizeBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            showScreen('customize-screen');
+            drawCharacter();
+        });
+    }
 
-    document.getElementById('support-btn').addEventListener('click', () => {
-        showScreen('support-screen');
-    });
+    if (startGameBtn) {
+        startGameBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            showScreen('game-screen');
+            startGame();
+        });
+    }
 
-    document.getElementById('back-to-menu-btn').addEventListener('click', () => {
-        showScreen('main-menu');
-    });
+    if (supportBtn) {
+        supportBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            showScreen('support-screen');
+        });
+    }
 
-    document.getElementById('back-from-support-btn').addEventListener('click', () => {
-        showScreen('main-menu');
-    });
+    if (backToMenuBtn) {
+        backToMenuBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            showScreen('main-menu');
+        });
+    }
+
+    if (backFromSupportBtn) {
+        backFromSupportBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            showScreen('main-menu');
+        });
+    }
 }
 
 function showScreen(screenId) {
@@ -81,7 +107,9 @@ function initCustomization() {
     const optionButtons = document.querySelectorAll('.option-btn');
     
     optionButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             const type = btn.dataset.type;
             const value = parseInt(btn.dataset.value);
             
@@ -393,10 +421,16 @@ function endMission(success) {
         resultPopup.classList.remove('hidden');
         
         // После успеха переходим к уроку
-        document.getElementById('continue-btn').onclick = () => {
-            resultPopup.classList.add('hidden');
-            startLesson();
-        };
+        const continueBtn = document.getElementById('continue-btn');
+        if (continueBtn) {
+            continueBtn.onclick = null;
+            continueBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                resultPopup.classList.add('hidden');
+                startLesson();
+            });
+        }
     } else {
         // При опоздании показываем диалог выбора
         gameState.mission.late = true;
@@ -635,17 +669,32 @@ function initHelper() {
 // Диалог выбора после опоздания
 function showLateChoiceDialog() {
     const dialog = document.getElementById('late-choice-dialog');
+    if (!dialog) return;
+    
     dialog.classList.remove('hidden');
     
-    document.getElementById('apologize-btn').onclick = () => {
-        dialog.classList.add('hidden');
-        goToDirector();
-    };
+    const apologizeBtn = document.getElementById('apologize-btn');
+    const skipClassBtn = document.getElementById('skip-class-btn');
     
-    document.getElementById('skip-class-btn').onclick = () => {
-        dialog.classList.add('hidden');
-        goToDirector();
-    };
+    if (apologizeBtn) {
+        apologizeBtn.onclick = null; // Очищаем старые обработчики
+        apologizeBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dialog.classList.add('hidden');
+            goToDirector();
+        });
+    }
+    
+    if (skipClassBtn) {
+        skipClassBtn.onclick = null;
+        skipClassBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dialog.classList.add('hidden');
+            goToDirector();
+        });
+    }
 }
 
 // Переход к директору
@@ -730,14 +779,20 @@ function showDirectorDialogue() {
             <p class="text">${dialogue.text}</p>
         `;
         
-        document.getElementById('next-director-btn').onclick = () => {
-            gameState.directorDialogueStep++;
-            if (gameState.directorDialogueStep >= directorDialogues.length) {
-                startLesson();
-            } else {
-                showDirectorDialogue();
-            }
-        };
+        const nextBtn = document.getElementById('next-director-btn');
+        if (nextBtn) {
+            nextBtn.onclick = null;
+            nextBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                gameState.directorDialogueStep++;
+                if (gameState.directorDialogueStep >= directorDialogues.length) {
+                    startLesson();
+                } else {
+                    showDirectorDialogue();
+                }
+            });
+        }
     }
 }
 
@@ -801,7 +856,11 @@ function showQuestion() {
         const button = document.createElement('button');
         button.className = 'answer-option';
         button.textContent = answer;
-        button.onclick = () => selectAnswer(index, question.correct);
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            selectAnswer(index, question.correct);
+        });
         answerOptions.appendChild(button);
     });
 }
@@ -860,6 +919,8 @@ function updateConfidenceMeter() {
 
 function endLesson() {
     const questionContainer = document.querySelector('.question-container');
+    if (!questionContainer) return;
+    
     questionContainer.innerHTML = `
         <div style="text-align: center; padding: 40px;">
             <h2 style="color: #4a90e2; font-size: 2.5em; margin-bottom: 20px;">🔔 Звонок!</h2>
@@ -872,8 +933,16 @@ function endLesson() {
         </div>
     `;
     
-    document.getElementById('back-to-menu-from-lesson').onclick = () => {
-        showScreen('main-menu');
-    };
+    // Небольшая задержка для того, чтобы кнопка успела появиться в DOM
+    setTimeout(() => {
+        const backBtn = document.getElementById('back-to-menu-from-lesson');
+        if (backBtn) {
+            backBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                showScreen('main-menu');
+            });
+        }
+    }, 100);
 }
 
