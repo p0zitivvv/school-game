@@ -19,10 +19,15 @@ const gameState = {
         timeLeft: 30,
         targetX: 1100,
         targetY: 200,
-        completed: false
+        completed: false,
+        late: false
     },
     obstacles: [],
-    otherStudents: []
+    otherStudents: [],
+    confidence: 50,
+    currentQuestion: 0,
+    questionsAnswered: 0,
+    directorDialogueStep: 0
 };
 
 // Цвета для кастомизации
@@ -206,6 +211,10 @@ function startGame() {
     gameState.mission.active = true;
     gameState.mission.timeLeft = 30;
     gameState.mission.completed = false;
+    gameState.mission.late = false;
+    
+    // Начальная подсказка помощника
+    updateHelperText('🏃 Доберись до класса вовремя! Используй WASD или стрелки.');
     
     // Создание препятствий (другие ученики)
     gameState.otherStudents = [
@@ -239,6 +248,9 @@ function updateGame() {
     if (!gameState.mission.active) {
         return;
     }
+    
+    // Обновляем подсказки помощника
+    initHelper();
     
     // Обработка движения игрока
     handlePlayerMovement();
@@ -369,21 +381,27 @@ function endMission(success) {
         clearInterval(missionTimer);
     }
     
-    const resultPopup = document.getElementById('mission-result');
-    const resultTitle = document.getElementById('result-title');
-    const resultMessage = document.getElementById('result-message');
-    
     if (success) {
+        const resultPopup = document.getElementById('mission-result');
+        const resultTitle = document.getElementById('result-title');
+        const resultMessage = document.getElementById('result-message');
+        
         resultTitle.textContent = '✅ Успех!';
         resultTitle.style.color = '#4a90e2';
         resultMessage.textContent = `Поздравляем! Ты успел вовремя на урок! Время: ${30 - gameState.mission.timeLeft} секунд.`;
+        
+        resultPopup.classList.remove('hidden');
+        
+        // После успеха переходим к уроку
+        document.getElementById('continue-btn').onclick = () => {
+            resultPopup.classList.add('hidden');
+            startLesson();
+        };
     } else {
-        resultTitle.textContent = '❌ Опоздание';
-        resultTitle.style.color = '#dc143c';
-        resultMessage.textContent = 'К сожалению, ты опоздал на урок. Попробуй ещё раз!';
+        // При опоздании показываем диалог выбора
+        gameState.mission.late = true;
+        showLateChoiceDialog();
     }
-    
-    resultPopup.classList.remove('hidden');
 }
 
 function updateTimer() {
@@ -576,3 +594,286 @@ function drawTargetIndicator() {
         gameCtx.setLineDash([]);
     }
 }
+
+// Плашка помощника
+function updateHelperText(text) {
+    const helperText = document.getElementById('helper-text');
+    helperText.textContent = text;
+}
+
+let lastHelperUpdate = 0;
+function initHelper() {
+    // Обновляем подсказки не каждый кадр, а раз в секунду
+    const now = Date.now();
+    if (now - lastHelperUpdate < 1000 && lastHelperUpdate !== 0) {
+        return;
+    }
+    lastHelperUpdate = now;
+    
+    // Обновляем подсказки в зависимости от ситуации
+    if (gameState.mission.active) {
+        const timeLeft = gameState.mission.timeLeft;
+        const player = gameState.player;
+        const target = gameState.mission;
+        const distance = Math.sqrt(
+            Math.pow(player.x + player.width / 2 - target.targetX, 2) +
+            Math.pow(player.y + player.height / 2 - target.targetY, 2)
+        );
+        
+        if (timeLeft <= 10) {
+            updateHelperText('⏰ Осталось мало времени! Спеши к классу!');
+        } else if (distance < 200) {
+            updateHelperText('🎯 Ты почти у цели! Иди прямо к двери!');
+        } else if (distance < 400) {
+            updateHelperText('📍 Класс уже близко! Продолжай движение!');
+        } else {
+            updateHelperText('🏃 Двигайся вправо и вверх к классу!');
+        }
+    }
+}
+
+// Диалог выбора после опоздания
+function showLateChoiceDialog() {
+    const dialog = document.getElementById('late-choice-dialog');
+    dialog.classList.remove('hidden');
+    
+    document.getElementById('apologize-btn').onclick = () => {
+        dialog.classList.add('hidden');
+        goToDirector();
+    };
+    
+    document.getElementById('skip-class-btn').onclick = () => {
+        dialog.classList.add('hidden');
+        goToDirector();
+    };
+}
+
+// Переход к директору
+function goToDirector() {
+    showScreen('director-screen');
+    gameState.directorDialogueStep = 0;
+    showDirectorDialogue();
+    drawPlayerInDirector();
+}
+
+function drawPlayerInDirector() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 128;
+    canvas.height = 128;
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    
+    const scale = 4;
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    
+    // Тело (штаны)
+    ctx.fillStyle = colors.pants[gameState.character.pants];
+    ctx.fillRect(centerX - 8 * scale, centerY + 4 * scale, 16 * scale, 12 * scale);
+    
+    // Футболка/кофта
+    ctx.fillStyle = colors.shirt[gameState.character.shirt];
+    ctx.fillRect(centerX - 8 * scale, centerY - 8 * scale, 16 * scale, 12 * scale);
+    
+    // Голова
+    ctx.fillStyle = '#FFDBAC';
+    ctx.fillRect(centerX - 6 * scale, centerY - 20 * scale, 12 * scale, 12 * scale);
+    
+    // Волосы
+    ctx.fillStyle = colors.hair[gameState.character.hair];
+    const hairStyle = gameState.character.hair;
+    
+    if (hairStyle === 0) {
+        ctx.fillRect(centerX - 6 * scale, centerY - 20 * scale, 12 * scale, 4 * scale);
+    } else if (hairStyle === 1) {
+        ctx.fillRect(centerX - 6 * scale, centerY - 20 * scale, 12 * scale, 4 * scale);
+        ctx.fillRect(centerX - 7 * scale, centerY - 16 * scale, 14 * scale, 8 * scale);
+    } else if (hairStyle === 2) {
+        ctx.fillRect(centerX - 7 * scale, centerY - 20 * scale, 14 * scale, 6 * scale);
+        for (let i = 0; i < 3; i++) {
+            ctx.beginPath();
+            ctx.arc(centerX - 4 * scale + i * 4 * scale, centerY - 18 * scale, 2 * scale, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    } else if (hairStyle === 3) {
+        ctx.fillRect(centerX - 2 * scale, centerY - 24 * scale, 4 * scale, 8 * scale);
+    }
+    
+    // Глаза
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(centerX - 4 * scale, centerY - 16 * scale, 2 * scale, 2 * scale);
+    ctx.fillRect(centerX + 2 * scale, centerY - 16 * scale, 2 * scale, 2 * scale);
+    
+    // Рот
+    ctx.fillRect(centerX - 2 * scale, centerY - 12 * scale, 4 * scale, 1 * scale);
+    
+    const preview = document.querySelector('.player-sprite-preview');
+    preview.innerHTML = '';
+    preview.appendChild(canvas);
+}
+
+const directorDialogues = [
+    { speaker: 'Директор:', text: 'Так, объясни ситуацию.' },
+    { speaker: 'Ты:', text: 'Извините, я опоздал...' },
+    { speaker: 'Директор:', text: 'Хм, понимаю. В следующий раз будь внимательнее.' },
+    { speaker: 'Директор:', text: 'Ладно, иди на урок. Но больше так не делай!' }
+];
+
+function showDirectorDialogue() {
+    const dialogueDiv = document.getElementById('director-dialogue');
+    const step = gameState.directorDialogueStep;
+    
+    if (step < directorDialogues.length) {
+        const dialogue = directorDialogues[step];
+        dialogueDiv.innerHTML = `
+            <p class="speaker">${dialogue.speaker}</p>
+            <p class="text">${dialogue.text}</p>
+        `;
+        
+        document.getElementById('next-director-btn').onclick = () => {
+            gameState.directorDialogueStep++;
+            if (gameState.directorDialogueStep >= directorDialogues.length) {
+                startLesson();
+            } else {
+                showDirectorDialogue();
+            }
+        };
+    }
+}
+
+// Урок с вопросами
+const questions = [
+    {
+        question: 'Когда были декабрьские события в Казахстане?',
+        answers: ['1986 год', '1991 год', '1995 год', '2000 год'],
+        correct: 0
+    },
+    {
+        question: 'Какое событие произошло в декабре 1986 года в Алма-Ате?',
+        answers: ['Землетрясение', 'Молодёжные протесты', 'Открытие университета', 'Визит президента'],
+        correct: 1
+    },
+    {
+        question: 'Кто был первым президентом независимого Казахстана?',
+        answers: ['Нурсултан Назарбаев', 'Касым-Жомарт Токаев', 'Аскар Акаев', 'Ислам Каримов'],
+        correct: 0
+    },
+    {
+        question: 'В каком году Казахстан обрёл независимость?',
+        answers: ['1989', '1990', '1991', '1992'],
+        correct: 2
+    },
+    {
+        question: 'Какая столица была у Казахстана до Астаны (Нур-Султана)?',
+        answers: ['Алма-Ата', 'Караганда', 'Шымкент', 'Актобе'],
+        correct: 0
+    }
+];
+
+function startLesson() {
+    showScreen('lesson-screen');
+    gameState.currentQuestion = 0;
+    gameState.questionsAnswered = 0;
+    gameState.confidence = 50;
+    updateConfidenceMeter();
+    showQuestion();
+}
+
+function showQuestion() {
+    if (gameState.currentQuestion >= questions.length) {
+        endLesson();
+        return;
+    }
+    
+    const question = questions[gameState.currentQuestion];
+    const questionNumber = document.getElementById('question-number');
+    const questionText = document.getElementById('question-text');
+    const answerOptions = document.getElementById('answer-options');
+    const feedback = document.getElementById('answer-feedback');
+    
+    questionNumber.textContent = `Вопрос ${gameState.currentQuestion + 1} из ${questions.length}`;
+    questionText.textContent = question.question;
+    
+    answerOptions.innerHTML = '';
+    feedback.classList.add('hidden');
+    
+    question.answers.forEach((answer, index) => {
+        const button = document.createElement('button');
+        button.className = 'answer-option';
+        button.textContent = answer;
+        button.onclick = () => selectAnswer(index, question.correct);
+        answerOptions.appendChild(button);
+    });
+}
+
+function selectAnswer(selectedIndex, correctIndex) {
+    const question = questions[gameState.currentQuestion];
+    const answerOptions = document.querySelectorAll('.answer-option');
+    const feedback = document.getElementById('answer-feedback');
+    
+    // Отключаем все кнопки
+    answerOptions.forEach(btn => {
+        btn.style.pointerEvents = 'none';
+    });
+    
+    // Показываем правильный/неправильный ответ
+    if (selectedIndex === correctIndex) {
+        answerOptions[selectedIndex].classList.add('correct');
+        feedback.textContent = '✅ Правильно!';
+        feedback.className = 'answer-feedback correct';
+        gameState.confidence = Math.min(100, gameState.confidence + 10);
+        gameState.questionsAnswered++;
+    } else {
+        answerOptions[selectedIndex].classList.add('incorrect');
+        answerOptions[correctIndex].classList.add('correct');
+        feedback.textContent = '❌ Неправильно. Правильный ответ выделен зелёным.';
+        feedback.className = 'answer-feedback incorrect';
+        gameState.confidence = Math.max(0, gameState.confidence - 5);
+    }
+    
+    feedback.classList.remove('hidden');
+    updateConfidenceMeter();
+    
+    // Переход к следующему вопросу через 2 секунды
+    setTimeout(() => {
+        gameState.currentQuestion++;
+        showQuestion();
+    }, 2000);
+}
+
+function updateConfidenceMeter() {
+    const fill = document.getElementById('confidence-fill');
+    const value = document.getElementById('confidence-value');
+    
+    fill.style.width = `${gameState.confidence}%`;
+    value.textContent = gameState.confidence;
+    
+    // Меняем цвет в зависимости от уровня
+    if (gameState.confidence >= 70) {
+        fill.style.background = 'linear-gradient(90deg, #32CD32 0%, #228B22 100%)';
+    } else if (gameState.confidence >= 40) {
+        fill.style.background = 'linear-gradient(90deg, #4a90e2 0%, #5aa0f2 100%)';
+    } else {
+        fill.style.background = 'linear-gradient(90deg, #DC143C 0%, #FF6347 100%)';
+    }
+}
+
+function endLesson() {
+    const questionContainer = document.querySelector('.question-container');
+    questionContainer.innerHTML = `
+        <div style="text-align: center; padding: 40px;">
+            <h2 style="color: #4a90e2; font-size: 2.5em; margin-bottom: 20px;">🔔 Звонок!</h2>
+            <p style="font-size: 1.5em; margin-bottom: 30px;">Урок окончен!</p>
+            <div style="background: #2a2a3e; padding: 20px; border: 3px solid #4a90e2; margin-bottom: 20px;">
+                <p style="font-size: 1.2em; margin-bottom: 10px;">Правильных ответов: ${gameState.questionsAnswered} из ${questions.length}</p>
+                <p style="font-size: 1.2em;">Финальная уверенность: ${gameState.confidence}</p>
+            </div>
+            <button id="back-to-menu-from-lesson" class="pixel-btn">В главное меню</button>
+        </div>
+    `;
+    
+    document.getElementById('back-to-menu-from-lesson').onclick = () => {
+        showScreen('main-menu');
+    };
+}
+
