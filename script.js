@@ -455,7 +455,21 @@ function drawGame() {
     gameCtx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
     
     // Рисуем древесный пол
-    drawWoodenFloor();
+    // Загружаем изображение пола
+const floorImage = new Image();
+floorImage.src = 'floor.png';
+
+// Рисуем пол на игровом канвасе
+function drawWoodenFloor() {
+    if (!floorImage.complete) {
+        floorImage.onload = () => {
+            gameCtx.drawImage(floorImage, 0, 0, gameCanvas.width, gameCanvas.height);
+        };
+    } else {
+        gameCtx.drawImage(floorImage, 0, 0, gameCanvas.width, gameCanvas.height);
+    }
+}
+
     
     // Рисуем стены
     gameCtx.fillStyle = '#4a5a6e';
@@ -1000,4 +1014,5 @@ function endLesson() {
         }
     }, 100);
 }
+
 
