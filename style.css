@@ -250,13 +250,15 @@ body {
 .game-ui {
     position: absolute;
     top: 10px;
-    left: 10px;
-    right: 10px;
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 10;
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: flex-start;
+    gap: 20px;
     pointer-events: none;
+    flex-wrap: wrap;
 }
 
 .mission-info {
